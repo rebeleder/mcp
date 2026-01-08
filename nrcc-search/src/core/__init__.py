@@ -1,0 +1,1 @@
+"""NRCC Search core module."""

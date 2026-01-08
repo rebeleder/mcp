@@ -1,5 +1,8 @@
+from src.core import nrcc_search
+
 def main():
-    print("Hello from nrcc-search!")
+    """Main entry point for the NRCC Search application."""
+    nrcc_search.main()
 
 
 if __name__ == "__main__":

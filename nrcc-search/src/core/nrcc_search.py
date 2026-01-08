@@ -3,7 +3,7 @@ import logging
 from typing import Any, Optional
 import httpx
 from mcp.server.fastmcp import FastMCP
-from auth_middleware import rate_limit, require_api_key_or_token
+from utils.middleware import rate_limit
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -122,35 +122,20 @@ async def format_chemical_detail(result: Any) -> str:
 
 
 @mcp.tool()
-@require_api_key_or_token  # 身份验证 - 需要提供 api_key 或 token
 @rate_limit(lambda: "chemicals_list")  # 速率限制
-async def get_chemicals_list_tool(chemName: str, chemCas: str, api_key: Optional[str] = None, token: Optional[str] = None) -> Any:
+async def get_chemicals_list_tool(chemName: str, chemCas: str) -> Any:
     """
     Search for chemicals in the NRCC database.
-
-    Authentication:
-        This tool requires authentication via either API Key or JWT Token.
-        Provide ONE of the following:
-        - api_key: Your API key (from MCP_API_KEY environment variable)
-        - token: A valid JWT token (signed with JWT_SECRET)
 
     Args:
         chemName (str): The chemical name to search for (e.g., "滴滴涕", "苯").
         chemCas (str): The CAS number to search for (e.g., "50-29-3", "71-43-2").
-        api_key (Optional[str]): API Key for authentication.
-        token (Optional[str]): JWT Token for authentication.
 
     Returns:
         Any: Formatted search results from the NRCC database.
 
     Example:
-        # Using API Key
-        result = await get_chemicals_list_tool(chemName="滴滴涕", chemCas="50-29-3",
-                                              api_key="your-api-key")
-
-        # Using JWT Token
-        result = await get_chemicals_list_tool(chemName="滴滴涕", chemCas="50-29-3",
-                                              token="your-jwt-token")
+        result = await get_chemicals_list_tool(chemName="滴滴涕", chemCas="50-29-3")
     """
     try:
         chemicals_list = await search_chemicals_list(chemName, chemCas)
@@ -163,34 +148,19 @@ async def get_chemicals_list_tool(chemName: str, chemCas: str, api_key: Optional
 
 
 @mcp.tool()
-@require_api_key_or_token  # 身份验证 - 需要提供 api_key 或 token
 @rate_limit(lambda: "chemical_detail")  # 速率限制
-async def get_chemical_detail_tool(chem_id: str, api_key: Optional[str] = None, token: Optional[str] = None) -> Any:
+async def get_chemical_detail_tool(chem_id: str) -> Any:
     """
     Retrieve detailed information for a specific chemical from the NRCC database.
 
-    Authentication:
-        This tool requires authentication via either API Key or JWT Token.
-        Provide ONE of the following:
-        - api_key: Your API key (from MCP_API_KEY environment variable)
-        - token: A valid JWT token (signed with JWT_SECRET)
-
     Args:
         chem_id (str): The chemical ID to retrieve details for (e.g., "82861C0E-1391-4E10-8AAF-6C342C59EB92").
-        api_key (Optional[str]): API Key for authentication.
-        token (Optional[str]): JWT Token for authentication.
 
     Returns:
         Any: Detailed chemical information including physical properties, hazards, safety measures, etc.
 
     Example:
-        # Using API Key
-        result = await get_chemical_detail_tool(chem_id="82861C0E-1391-4E10-8AAF-6C342C59EB92",
-                                               api_key="your-api-key")
-
-        # Using JWT Token
-        result = await get_chemical_detail_tool(chem_id="82861C0E-1391-4E10-8AAF-6C342C59EB92",
-                                               token="your-jwt-token")
+        result = await get_chemical_detail_tool(chem_id="82861C0E-1391-4E10-8AAF-6C342C59EB92")
     """
     try:
         chemical_detail = await search_chemical_detail(chem_id)
@@ -205,7 +175,7 @@ async def get_chemical_detail_tool(chem_id: str, api_key: Optional[str] = None, 
 def main():
     # Initialize and run the server
     mcp.run(transport = 'streamable-http')
-    logging.info("Weather MCP server is running...")
+    logging.info("NRCC MCP server is running...")
 
 
 if __name__ == "__main__":
